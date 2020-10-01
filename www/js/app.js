@@ -191,7 +191,7 @@ function editTodo(id, new_title, new_content){
 function getTodoList() {
   console.log('Refresh List');
   var MC = monaca.cloud;
-  var todo = MC.Collection("Todo");
+  var todo = MC.Collection("TodoApp");
   todo.findMine()
     .done(function(items, totalItems)
     {
