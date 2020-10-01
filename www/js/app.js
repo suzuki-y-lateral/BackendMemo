@@ -6,12 +6,12 @@ $(function() {
   $("#EditBtn").click(onEditBtn);
   $("#UpdateBtn").click(onUpdateBtn);
   $("#YesBtn_logout").click(onLogoutBtn);
-  $("#YesBtn_delete").click(deleteMemo);
+  $("#YesBtn_delete").click(deleteTodo);
 });
 
 
 
-var currentMemoID;
+var currentTodoID;
 var MC = monaca.cloud;
 
 function onRegisterBtn()
@@ -42,7 +42,7 @@ function onLoginBtn()
     .done(function()
     {
       console.log('login: '  + MC.User._oid);
-      getMemoList();
+      getTodoList();
       $.mobile.changePage('#ListPage');
     })
     .fail(function(err)
@@ -73,14 +73,14 @@ function onSaveBtn()
   var content = $("#content").val();
   if (title != '')
   {
-    addMemo(title,content);
+    addTodo(title,content);
   }
 }
 
-function addMemo(title,content) {
-  var memo = MC.Collection("Memo");
+function addTodo(title,content) {
+  var todo = MC.Collection("TodoApp");
 
-  memo.insert({ title: title, content: content})
+  todo.insert({ title: title, content: content})
   .done(function(insertedItem)
   {
     console.log('Insert is success!');
@@ -90,13 +90,13 @@ function addMemo(title,content) {
     // display a dialog stating that the inserting is success
     $("#okDialog_add").popup("open", {positionTo: "origin"}).click(function(event)
     {
-      getMemoList();
+      getTodoList();
       $.mobile.changePage('#ListPage');
     });
   })
   .fail(function(err){
     if (err.code == -32602) {
-      alert("Collection 'Memo' not found! Please create collection from IDE.");
+      alert("Collection 'Todo' not found! Please create collection from IDE.");
     } else {
       console.error(JSON.stringify(err));
       alert('Insert failed!');
@@ -106,7 +106,7 @@ function addMemo(title,content) {
 
 function onShowLink(id,title,content)
 {
-  currentMemoID = id;
+  currentTodoID = id;
   $("#title_show").text(title);
   $("#content_show").text(content);
   $.mobile.changePage("#ShowPage");
@@ -114,23 +114,23 @@ function onShowLink(id,title,content)
 
 function onDeleteBtn(id)
 {
-  currentMemoID = id;
+  currentTodoID = id;
   $( "#yesNoDialog_delete" ).popup("open", {positionTo: "origin"})
 }
 
-function deleteMemo()
+function deleteTodo()
 {
   console.log('yes');
-  var memo = MC.Collection("Memo");
-  memo.findOne(MC.Criteria("_id==?", [currentMemoID]))
+  var todo = MC.Collection("Todo");
+  todo.findOne(MC.Criteria("_id==?", [currentTodoID]))
     .done(function(item)
     {
       console.log(JSON.stringify(item));
       item.delete()
       .done(function()
        {
-          console.log("The memo is deleted!");
-          getMemoList();
+          console.log("The todo is deleted!");
+          getTodoList();
           $.mobile.changePage("#ListPage");
        })
        .fail(function(err){
@@ -157,15 +157,15 @@ function onUpdateBtn()
 {
   var new_title = $("#title_edit").val();
   var new_content = $("#content_edit").val();
-  var id = currentMemoID;
+  var id = currentTodoID;
   if (new_title != '') {
-    editMemo(id, new_title, new_content);
+    editTodo(id, new_title, new_content);
   }
 }
 
-function editMemo(id, new_title, new_content){
-  var memo = MC.Collection("Memo");
-  memo.findMine(MC.Criteria("_id==?", [id]))
+function editTodo(id, new_title, new_content){
+  var todo = MC.Collection("Todo");
+  todo.findMine(MC.Criteria("_id==?", [id]))
     .done(function(items, totalItems)
     {
       items.items[0].title = new_title;
@@ -177,7 +177,7 @@ function editMemo(id, new_title, new_content){
           //display a dialog stating that the updating is success
           $( "#okDialog_edit" ).popup("open", {positionTo: "origin"}).click(function(event)
           {
-            getMemoList();
+            getTodoList();
             $.mobile.changePage("#ListPage");
           });
         })
@@ -188,11 +188,11 @@ function editMemo(id, new_title, new_content){
     });
 }
 
-function getMemoList() {
+function getTodoList() {
   console.log('Refresh List');
   var MC = monaca.cloud;
-  var memo = MC.Collection("Memo");
-  memo.findMine()
+  var todo = MC.Collection("Todo");
+  todo.findMine()
     .done(function(items, totalItems)
     {
         console.log("all: " + JSON.stringify(items));
@@ -201,23 +201,23 @@ function getMemoList() {
 
       for (var i in list)
       {
-        var memo = list[i];
-        var d = new Date(memo._createdAt);
+        var todo = list[i];
+        var d = new Date(todo._createdAt);
         var date = d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate();
-        $li = $("<li><a href='javascript:onShowLink(\"" + memo._id + "\",\"" + memo.title + "\",\"" + memo.content + "\")' class='show'><h3></h3><p></p></a><a href='javascript:onDeleteBtn(\"" + memo._id + "\")' class='delete'>Delete</a></li>");
+        $li = $("<li><a href='javascript:onShowLink(\"" + todo._id + "\",\"" + todo.title + "\",\"" + todo.content + "\")' class='show'><h3></h3><p></p></a><a href='javascript:onDeleteBtn(\"" + todo._id + "\")' class='delete'>Delete</a></li>");
         $li.find("h3").text(date);
-        $li.find("p").text(memo.title);
+        $li.find("p").text(todo.title);
         $("#TopListView").prepend($li);
       }
       if (list.length == 0) {
-        $li = $("<li>No memo found</li>");
+        $li = $("<li>No todo found</li>");
         $("#TopListView").prepend($li);
       }
       $("#ListPage #TopListView").listview("refresh");
     })
   .fail(function(err){
     if (err.code == -32602) {
-      alert("Collection 'Memo' not found! Please create collection from IDE.");
+      alert("Collection 'Todo' not found! Please create collection from IDE.");
     } else {
       console.error(JSON.stringify(err));
       alert('Insert failed!');
